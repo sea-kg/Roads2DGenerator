@@ -18,6 +18,7 @@ list (APPEND WSJCPP_INCLUDE_DIRS "src")
 # source files
 list (APPEND WSJCPP_SOURCES "src/main.cpp")
 list (APPEND WSJCPP_SOURCES "src/Roads2DGenerator.cpp")
+list (APPEND WSJCPP_SOURCES "src/Roads2DGeneratorUnigineSplineGraph.cpp")
 
 include_directories(${WSJCPP_INCLUDE_DIRS})
 

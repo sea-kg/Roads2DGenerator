@@ -55,23 +55,37 @@ class Roads2DGeneratorPoint {
     public:
         Roads2DGeneratorPoint();
         Roads2DGeneratorPoint(int x, int y);
-        int getX();
-        int getY();
+        int getX() const;
+        int getY() const;
     private:
         int m_nX;
         int m_nY;
+};
+
+class Roads2DGeneratorGraph {
+    public:
+        Roads2DGeneratorGraph();
+        int addPoint(Roads2DGeneratorPoint point);
+        void addConnection(int index1, int index2);
+        const std::vector<Roads2DGeneratorPoint> &getPoints() const;
+        const std::vector<std::pair<int,int>> &getConnections() const;
+
+    private:
+        std::vector<Roads2DGeneratorPoint> m_vPoints;
+        std::vector<std::pair<int,int>> m_vConnections;
 };
 
 class Roads2DGenerator {
     public:
         Roads2DGenerator(int nWidthPixels, int nHeightPixels);
         void generate(float nDensity);
-        void print_map();
+        void printMap();
         std::vector<std::vector<std::string>> exportToTable();
         std::vector<std::vector<bool>> exportToPixelMap();
+        Roads2DGeneratorGraph exportToGraph();
 
     private:
-        void reset_map();
+        void resetMap();
         bool is_border(int x, int y);
         bool is_allowed(int x, int y);
         bool try_change_to_true(int x, int y);
