@@ -104,9 +104,9 @@ void Roads2DGeneratorUnigineSplineGraph::exportToSPLFile(const std::string &sFil
 }
 
 Roads2DGeneratorUnigineSplineGraph::SPLPoint3D Roads2DGeneratorUnigineSplineGraph::calculateTangent(int indexPoint) {
-    SPLPoint3D p = m_vPoints[indexPoint];
     SPLPoint3D tangent;
-    std::vector<SPLPoint3D> points = findConnectedSegments(p);
+    std::vector<int> indexesPoints = findConnectedSegments(indexPoint);
+    
     // tangent
     // // by x to 90
     // float dx1 = x_n - x;
@@ -131,12 +131,28 @@ std::vector<int> Roads2DGeneratorUnigineSplineGraph::findConnectedSegments(int i
     std::vector<int> vRet;
     for (int i = 0; i < m_vSegments.size(); i++) {
         if (m_vSegments[i].start_index == indexPoint) {
-            // TODO
-            vRet.push_back(m_vSegments[i].end_index);
+            int index = m_vSegments[i].end_index;
+            bool bFound = false;
+            for (int k = 0; k < vRet.size(); k++) {
+                if (vRet[k] == index) {
+                    bFound = true;
+                }
+            }
+            if (!bFound) {
+                vRet.push_back(index);
+            }
         }
         if (m_vSegments[i].end_index == indexPoint) {
-            // TODO
-            vRet.push_back(m_vSegments[i].start_index);
+            int index = m_vSegments[i].start_index;
+            bool bFound = false;
+            for (int k = 0; k < vRet.size(); k++) {
+                if (vRet[k] == index) {
+                    bFound = true;
+                }
+            }
+            if (!bFound) {
+                vRet.push_back(index);
+            }
         }
     }
     return vRet;
