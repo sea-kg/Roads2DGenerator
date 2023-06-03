@@ -56,6 +56,8 @@ class Roads2DGeneratorUnigineSplineGraph {
             SPLPoint3D start_up; // 0,0,1
             SPLPoint3D end_up; // 0,0,1
         };
+        Roads2DGeneratorUnigineSplineGraph::SPLPoint3D calculateTangent(int indexPoint);
+        std::vector<int> findConnectedSegments(int indexPoint);
         std::vector<SPLPoint3D> m_vPoints;
         std::vector<SPLSegment> m_vSegments;
 };

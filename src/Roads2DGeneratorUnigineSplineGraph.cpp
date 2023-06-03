@@ -39,8 +39,8 @@ Roads2DGeneratorUnigineSplineGraph::Roads2DGeneratorUnigineSplineGraph(
     const std::vector<std::pair<int,int>> &connections = graph.getConnections();
     for (int i = 0; i < connections.size(); i++) {
         SPLSegment seg;
-        seg.start_tangent = SPLPoint3D(1,0,0);
-        seg.end_tangent = SPLPoint3D(1,0,0);
+        seg.start_tangent = calculateTangent(seg.start_index);
+        seg.end_tangent = calculateTangent(seg.end_index);
         seg.start_index = connections[i].first;
         seg.end_index = connections[i].second;
         m_vSegments.push_back(seg);
@@ -101,4 +101,43 @@ void Roads2DGeneratorUnigineSplineGraph::exportToSPLFile(const std::string &sFil
     } else {
         std::cerr << "Problem with opening file" << std::endl;
     }
+}
+
+Roads2DGeneratorUnigineSplineGraph::SPLPoint3D Roads2DGeneratorUnigineSplineGraph::calculateTangent(int indexPoint) {
+    SPLPoint3D p = m_vPoints[indexPoint];
+    SPLPoint3D tangent;
+    std::vector<SPLPoint3D> points = findConnectedSegments(p);
+    // tangent
+    // // by x to 90
+    // float dx1 = x_n - x;
+    // float dy1 = y_n - y;
+    // float dz1 = z_n - z;
+    // x_n = x + dx1;
+    // y_n = y + dy1 * std::cos(M_PI/2) - dz1 * std::sin(M_PI/2);
+    // z_n = z + dy1 * std::sin(M_PI/2) + dz1 * std::cos(M_PI/2);
+
+    // // by y to 90
+    // dx1 = x_n - x;
+    // dy1 = y_n - y;
+    // dz1 = z_n - z;
+    // x_n = x + dx1 * std::cos(M_PI/2) + dz1 * std::sin(M_PI/2);
+    // y_n = y + dy1;
+    // z_n = z - dx1 * std::sin(M_PI/2) + dz1 * std::cos(M_PI/2);
+
+    return tangent;
+}
+
+std::vector<int> Roads2DGeneratorUnigineSplineGraph::findConnectedSegments(int indexPoint) {
+    std::vector<int> vRet;
+    for (int i = 0; i < m_vSegments.size(); i++) {
+        if (m_vSegments[i].start_index == indexPoint) {
+            // TODO
+            vRet.push_back(m_vSegments[i].end_index);
+        }
+        if (m_vSegments[i].end_index == indexPoint) {
+            // TODO
+            vRet.push_back(m_vSegments[i].start_index);
+        }
+    }
+    return vRet;
 }

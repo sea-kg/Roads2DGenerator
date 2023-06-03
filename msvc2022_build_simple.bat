@@ -29,7 +29,7 @@ echo Building...
 cmake --build tmp\windows --config Release
 rem >> win-build.log 2>&1
 if %ERRORLEVEL% GEQ 1 (
-    echo Failed cmake build. Log of build look in file win-build.log
+    echo Failed cmake build.
     EXIT /B 1
 )
 echo Done.

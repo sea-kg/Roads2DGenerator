@@ -34,3 +34,4 @@
 # Roads2DGenerator
 /tmp
 .vscode
+*.spl
