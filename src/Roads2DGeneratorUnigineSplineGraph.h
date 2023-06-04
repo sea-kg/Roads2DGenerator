@@ -33,7 +33,9 @@ SOFTWARE.
 class Roads2DGeneratorUnigineSplineGraph {
     public:
         Roads2DGeneratorUnigineSplineGraph(const Roads2DGeneratorGraph &graph);
+        void randomModify();
         void exportToSPLFile(const std::string &sFilepath);
+
     private:
         int m_nWidth;
         int m_nHeight;
@@ -56,10 +58,11 @@ class Roads2DGeneratorUnigineSplineGraph {
             SPLPoint3D start_up; // 0,0,1
             SPLPoint3D end_up; // 0,0,1
         };
-        Roads2DGeneratorUnigineSplineGraph::SPLPoint3D calculateTangent(int indexPoint);
+        const Roads2DGeneratorUnigineSplineGraph::SPLPoint3D &calculateTangent(int indexPoint);
         std::vector<int> findConnectedSegments(int indexPoint);
         std::vector<SPLPoint3D> m_vPoints;
         std::vector<SPLSegment> m_vSegments;
+        Roads2DGeneratorPseudoRandom random;
 };
 
 #endif // __ROADS_2D_GENERATOR_UNIGENE_SPLINE_GRAPH_H__

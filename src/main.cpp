@@ -18,8 +18,11 @@ int main(int argc, char *argv[])
     int height = 41;
     Roads2DGenerator road2gen(width, height);
     road2gen.generate(0.5);
-    road2gen.printMap();
+    // road2gen.printMap();
+
+    // std::cout << "1" << std::endl;
     Roads2DGeneratorUnigineSplineGraph unigineSpl(road2gen.exportToGraph());
+    // unigineSpl.randomModify();
     unigineSpl.exportToSPLFile("test.spl");
     return 0;
 }
