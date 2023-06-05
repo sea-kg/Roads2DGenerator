@@ -40,22 +40,13 @@ Roads2DGeneratorUnigineSplineGraph::Roads2DGeneratorUnigineSplineGraph(
     const std::vector<std::pair<int,int>> &connections = graph.getConnections();
     for (int i = 0; i < connections.size(); i++) {
         SPLSegment seg;
-        seg.start_tangent = calculateTangent(seg.start_index);
-        if (seg.start_index == 0) { // || indexPoint == 1) {
-            std::cout
-                << "after return: indexPoint = " << seg.start_index << "; "
-                << "x = " << seg.start_tangent.x << "; "
-                << "y = " << seg.start_tangent.y << "; "
-                << "z = " << seg.start_tangent.z << "; "
-                << "; "
-                << std::endl
-            ;
-        }
-        seg.end_tangent = calculateTangent(seg.end_index);
         seg.start_index = connections[i].first;
         seg.end_index = connections[i].second;
+        seg.start_tangent = SPLPoint3D(0,0,0);
+        seg.end_tangent = SPLPoint3D(0,0,0);
         m_vSegments.push_back(seg);
     }
+    updateTangents();
     std::cout << "Done. " << std::endl;
 }
 
@@ -110,6 +101,7 @@ void Roads2DGeneratorUnigineSplineGraph::exportToSPLFile(const std::string &sFil
             fw << "\t\t\t\t" << m_vSegments[i].start_tangent.z << "\n";
             if (m_vSegments[i].start_index == 0) { // || indexPoint == 1) {
                 std::cout
+                    << "seg = " << i << "; "
                     << "write to file: indexPoint = " << m_vSegments[i].start_index << "; "
                     << "x = " << m_vSegments[i].start_tangent.x << "; "
                     << "y = " << m_vSegments[i].start_tangent.y << "; "
@@ -187,6 +179,17 @@ void Roads2DGeneratorUnigineSplineGraph::updateTangents() {
     for (int i = 0; i < m_vSegments.size(); i++) {
         m_vSegments[i].start_tangent = calculateTangent(m_vSegments[i].start_index);
         m_vSegments[i].end_tangent = calculateTangent(m_vSegments[i].end_index);
+
+        if (m_vSegments[i].start_index == 0) { // || indexPoint == 1) {
+            std::cout
+                << "updateTangents: indexPoint = " << m_vSegments[i].start_index << "; "
+                << "x = " << m_vSegments[i].start_tangent.x << "; "
+                << "y = " << m_vSegments[i].start_tangent.y << "; "
+                << "z = " << m_vSegments[i].start_tangent.z << "; "
+                << "; "
+                << std::endl
+            ;
+        }
     }
 }
 
