@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include "Roads2DGenerator.h"
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <ctime>
 
 // ---------------------------------------------------------------------

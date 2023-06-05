@@ -25,7 +25,10 @@ SOFTWARE.
 #include "Roads2DGeneratorUnigineSplineGraph.h"
 
 #include <fstream>
+#include <cmath>
 #include <iostream>
+
+#define M_PI           3.14159265358979323846  /* pi */
 
 Roads2DGeneratorUnigineSplineGraph::Roads2DGeneratorUnigineSplineGraph(
     const Roads2DGeneratorGraph &graph
@@ -99,17 +102,6 @@ void Roads2DGeneratorUnigineSplineGraph::exportToSPLFile(const std::string &sFil
             fw << "\t\t\t\t" << m_vSegments[i].start_tangent.x << ",\n";
             fw << "\t\t\t\t" << m_vSegments[i].start_tangent.y << ",\n";
             fw << "\t\t\t\t" << m_vSegments[i].start_tangent.z << "\n";
-            if (m_vSegments[i].start_index == 0) { // || indexPoint == 1) {
-                std::cout
-                    << "seg = " << i << "; "
-                    << "write to file: indexPoint = " << m_vSegments[i].start_index << "; "
-                    << "x = " << m_vSegments[i].start_tangent.x << "; "
-                    << "y = " << m_vSegments[i].start_tangent.y << "; "
-                    << "z = " << m_vSegments[i].start_tangent.z << "; "
-                    << "; "
-                    << std::endl
-                ;
-            }
             fw << "\t\t\t],\n";
             fw << "\t\t\t\"end_tangent\": [\n";
             fw << "\t\t\t\t" << m_vSegments[i].end_tangent.x << ",\n";
@@ -135,44 +127,34 @@ Roads2DGeneratorUnigineSplineGraph::SPLPoint3D Roads2DGeneratorUnigineSplineGrap
     float x = 0.0;
     float y = 0.0;
     float z = 0.0;
+    SPLPoint3D start_p = m_vPoints[indexPoint];
     for (int i = 0; i < indexesPoints.size(); i++) {
         SPLPoint3D p = m_vPoints[indexesPoints[i]];
-        x += p.x;
-        y += p.y;
-        z += p.z;
+        x += p.x - start_p.x;
+        y += p.y - start_p.y;
+        z += p.z - start_p.z;
     }
-
-    x = x / float(indexesPoints.size());
-    y = y / float(indexesPoints.size());
-    z = z / float(indexesPoints.size());
-    if (indexPoint == 0) { // || indexPoint == 1) {
-        std::cout
-            << "before return: indexPoint = " << indexPoint << "; "
-            << "x = " << x << "; "
-            << "y = " << y << "; "
-            << "z = " << z << "; "
-            << "indexesPoints.size() = " << indexesPoints.size() << "; "
-            << std::endl
-        ;
+    if (indexesPoints.size() > 0) {
+        x = x / float(indexesPoints.size());
+        y = y / float(indexesPoints.size());
+        z = z / float(indexesPoints.size());
     }
+    int length = std::sqrt(std::pow(x,2) + std::pow(y,2) + std::pow(z,2));
 
     // tangent
     // // by x to 90
-    // float dx1 = x_n - x;
-    // float dy1 = y_n - y;
-    // float dz1 = z_n - z;
-    // x_n = x + dx1;
-    // y_n = y + dy1 * std::cos(M_PI/2) - dz1 * std::sin(M_PI/2);
-    // z_n = z + dy1 * std::sin(M_PI/2) + dz1 * std::cos(M_PI/2);
+    float x1 = x;
+    float y1 = y * std::cos(M_PI/2) - z * std::sin(M_PI/2);
+    float z1 = y * std::sin(M_PI/2) + z * std::cos(M_PI/2);
 
     // // by y to 90
     // dx1 = x_n - x;
     // dy1 = y_n - y;
     // dz1 = z_n - z;
-    // x_n = x + dx1 * std::cos(M_PI/2) + dz1 * std::sin(M_PI/2);
-    // y_n = y + dy1;
-    // z_n = z - dx1 * std::sin(M_PI/2) + dz1 * std::cos(M_PI/2);
-    return SPLPoint3D(x,y,z);
+    float x2 = x1 * std::cos(M_PI/2) + z1 * std::sin(M_PI/2);
+    float y2 = x1;
+    float z2 = x1 * std::sin(M_PI/2) + z1 * std::cos(M_PI/2);
+    return SPLPoint3D(x2, y2, z2);
 }
 
 void Roads2DGeneratorUnigineSplineGraph::updateTangents() {
