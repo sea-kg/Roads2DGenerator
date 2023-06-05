@@ -53,13 +53,33 @@ Roads2DGeneratorUnigineSplineGraph::Roads2DGeneratorUnigineSplineGraph(
     std::cout << "Done. " << std::endl;
 }
 
-void Roads2DGeneratorUnigineSplineGraph::randomModify() {
+void Roads2DGeneratorUnigineSplineGraph::modifyRandom(float fluctuationX, float fluctuationY, float fluctuationZ) {
+    fluctuationX = std::abs(fluctuationX);
+    fluctuationY = std::abs(fluctuationY);
+    fluctuationZ = std::abs(fluctuationZ);
+    int nX = fluctuationX * 1000;
+    int nY = fluctuationY * 1000;
+    int nZ = fluctuationZ * 1000;
+    fluctuationX = fluctuationX / 2;
+    fluctuationY = fluctuationY / 2;
+    fluctuationZ = fluctuationZ / 2;
     random.setInitSeed(std::time(0));
     // std::cout << "size: " << m_vPoints.size() << std::endl;
     for (int i = 0; i < m_vPoints.size(); i++) {
         // std::cout << m_vPoints[i].x << std::endl;
-        m_vPoints[i].x += float(random.getNextRandom() % 100) / 100.f - 0.5;
+        m_vPoints[i].x += float(random.getNextRandom() % nX) / 1000.0f - fluctuationX;
+        m_vPoints[i].y += float(random.getNextRandom() % nY) / 1000.0f - fluctuationY;
+        m_vPoints[i].z += float(random.getNextRandom() % nZ) / 1000.0f - fluctuationZ;
         // std::cout << m_vPoints[i].x << std::endl;
+    }
+    updateTangents();
+}
+
+void Roads2DGeneratorUnigineSplineGraph::modifyScale(float scale) {
+    for (int i = 0; i < m_vPoints.size(); i++) {
+        m_vPoints[i].x = m_vPoints[i].x * scale;
+        m_vPoints[i].y = m_vPoints[i].y * scale;
+        m_vPoints[i].z = m_vPoints[i].z * scale;
     }
     updateTangents();
 }
@@ -180,11 +200,11 @@ Roads2DGeneratorUnigineSplineGraph::SPLPoint3D Roads2DGeneratorUnigineSplineGrap
     if (side < 0) {
         sign = -1.0;
     }
-    std::cout
-        << "length = " << length << "; "
-        << "side = " << side << "; "
-        << "indexesPoints.size() " << indexesPoints.size()
-        << std::endl;
+    // std::cout
+    //     << "length = " << length << "; "
+    //     << "side = " << side << "; "
+    //     << "indexesPoints.size() " << indexesPoints.size()
+    //     << std::endl;
 
     // tangent
     // by z to 90

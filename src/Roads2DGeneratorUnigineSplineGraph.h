@@ -33,7 +33,8 @@ SOFTWARE.
 class Roads2DGeneratorUnigineSplineGraph {
     public:
         Roads2DGeneratorUnigineSplineGraph(const Roads2DGeneratorGraph &graph);
-        void randomModify();
+        void modifyRandom(float fluctuationX, float fluctuationY, float fluctuationZ);
+        void modifyScale(float scale);
         void exportToSPLFile(const std::string &sFilepath);
 
     private:
