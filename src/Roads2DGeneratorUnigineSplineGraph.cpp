@@ -41,6 +41,16 @@ Roads2DGeneratorUnigineSplineGraph::Roads2DGeneratorUnigineSplineGraph(
     for (int i = 0; i < connections.size(); i++) {
         SPLSegment seg;
         seg.start_tangent = calculateTangent(seg.start_index);
+        if (seg.start_index == 0) { // || indexPoint == 1) {
+            std::cout
+                << "after return: indexPoint = " << seg.start_index << "; "
+                << "x = " << seg.start_tangent.x << "; "
+                << "y = " << seg.start_tangent.y << "; "
+                << "z = " << seg.start_tangent.z << "; "
+                << "; "
+                << std::endl
+            ;
+        }
         seg.end_tangent = calculateTangent(seg.end_index);
         seg.start_index = connections[i].first;
         seg.end_index = connections[i].second;
@@ -57,11 +67,7 @@ void Roads2DGeneratorUnigineSplineGraph::randomModify() {
         m_vPoints[i].x += float(random.getNextRandom() % 100) / 100.f - 0.5;
         // std::cout << m_vPoints[i].x << std::endl;
     }
-
-    for (int i = 0; i < m_vSegments.size(); i++) {
-        m_vSegments[i].start_tangent = calculateTangent(m_vSegments[i].start_index);
-        m_vSegments[i].end_tangent = calculateTangent(m_vSegments[i].end_index);
-    }
+    updateTangents();
 }
 
 void Roads2DGeneratorUnigineSplineGraph::exportToSPLFile(const std::string &sFilepath) {
@@ -102,6 +108,16 @@ void Roads2DGeneratorUnigineSplineGraph::exportToSPLFile(const std::string &sFil
             fw << "\t\t\t\t" << m_vSegments[i].start_tangent.x << ",\n";
             fw << "\t\t\t\t" << m_vSegments[i].start_tangent.y << ",\n";
             fw << "\t\t\t\t" << m_vSegments[i].start_tangent.z << "\n";
+            if (m_vSegments[i].start_index == 0) { // || indexPoint == 1) {
+                std::cout
+                    << "write to file: indexPoint = " << m_vSegments[i].start_index << "; "
+                    << "x = " << m_vSegments[i].start_tangent.x << "; "
+                    << "y = " << m_vSegments[i].start_tangent.y << "; "
+                    << "z = " << m_vSegments[i].start_tangent.z << "; "
+                    << "; "
+                    << std::endl
+                ;
+            }
             fw << "\t\t\t],\n";
             fw << "\t\t\t\"end_tangent\": [\n";
             fw << "\t\t\t\t" << m_vSegments[i].end_tangent.x << ",\n";
@@ -139,7 +155,7 @@ Roads2DGeneratorUnigineSplineGraph::SPLPoint3D Roads2DGeneratorUnigineSplineGrap
     z = z / float(indexesPoints.size());
     if (indexPoint == 0) { // || indexPoint == 1) {
         std::cout
-            << "indexPoint = " << indexPoint << "; "
+            << "before return: indexPoint = " << indexPoint << "; "
             << "x = " << x << "; "
             << "y = " << y << "; "
             << "z = " << z << "; "
@@ -147,7 +163,6 @@ Roads2DGeneratorUnigineSplineGraph::SPLPoint3D Roads2DGeneratorUnigineSplineGrap
             << std::endl
         ;
     }
-
 
     // tangent
     // // by x to 90
@@ -166,6 +181,13 @@ Roads2DGeneratorUnigineSplineGraph::SPLPoint3D Roads2DGeneratorUnigineSplineGrap
     // y_n = y + dy1;
     // z_n = z - dx1 * std::sin(M_PI/2) + dz1 * std::cos(M_PI/2);
     return SPLPoint3D(x,y,z);
+}
+
+void Roads2DGeneratorUnigineSplineGraph::updateTangents() {
+    for (int i = 0; i < m_vSegments.size(); i++) {
+        m_vSegments[i].start_tangent = calculateTangent(m_vSegments[i].start_index);
+        m_vSegments[i].end_tangent = calculateTangent(m_vSegments[i].end_index);
+    }
 }
 
 std::vector<int> Roads2DGeneratorUnigineSplineGraph::findConnectedSegments(int indexPoint) {
