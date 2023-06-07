@@ -75,6 +75,19 @@ class Roads2DGeneratorGraph {
         std::vector<std::pair<int,int>> m_vConnections;
 };
 
+class Roads2DGeneratorConnectedComponent {
+    public:
+        Roads2DGeneratorConnectedComponent();
+        bool hasPoint(Roads2DGeneratorPoint point);
+        void addPoint(Roads2DGeneratorPoint point);
+        const std::vector<Roads2DGeneratorPoint> &getPoints() const;
+        bool hasIntersection(const Roads2DGeneratorConnectedComponent &component);
+        void merge(const Roads2DGeneratorConnectedComponent &component);
+
+    private:
+        std::vector<Roads2DGeneratorPoint> m_vPoints;
+};
+
 class Roads2DGenerator {
     public:
         Roads2DGenerator(int nWidthPixels, int nHeightPixels);
@@ -110,10 +123,11 @@ class Roads2DGenerator {
         bool isDeadlockPoint(int x, int y);
         std::vector<Roads2DGeneratorPoint> findDeadlockPoints();
         Roads2DGeneratorPoint findShortPointFrom(Roads2DGeneratorPoint p0, std::vector<Roads2DGeneratorPoint> points);
-        
         void tryConnectDeadlocksLoop();
         void removeDeadlocksLoop();
         std::string getRoadPart(int x, int y);
+        std::vector<Roads2DGeneratorConnectedComponent> findConnectedComponents();
+        std::vector<Roads2DGeneratorConnectedComponent> mergeComponents(std::vector<Roads2DGeneratorConnectedComponent> vComponents);
 
         int m_nWidthPixels;
         int m_nHeightPixels;

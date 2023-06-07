@@ -130,6 +130,53 @@ const std::vector<std::pair<int,int>> &Roads2DGeneratorGraph::getConnections() c
 }
 
 // ---------------------------------------------------------------------
+// Roads2DGeneratorConnectedComponent
+
+Roads2DGeneratorConnectedComponent::Roads2DGeneratorConnectedComponent() {
+
+}
+
+bool Roads2DGeneratorConnectedComponent::hasPoint(Roads2DGeneratorPoint point) {
+    for (int i = 0; i < m_vPoints.size(); i++) {
+        if (m_vPoints[i].getX() == point.getX() && m_vPoints[i].getY() == point.getY()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Roads2DGeneratorConnectedComponent::addPoint(Roads2DGeneratorPoint point) {
+    if (!hasPoint(point)) {
+        m_vPoints.push_back(point);
+    }
+}
+
+const std::vector<Roads2DGeneratorPoint> &Roads2DGeneratorConnectedComponent::getPoints() const {
+    return m_vPoints;
+}
+
+bool Roads2DGeneratorConnectedComponent::hasIntersection(
+    const Roads2DGeneratorConnectedComponent &component
+) {
+    const std::vector<Roads2DGeneratorPoint> &vPoints = component.getPoints();
+    for (int i = 0; i < vPoints.size(); i++) {
+        if (this->hasPoint(vPoints[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Roads2DGeneratorConnectedComponent::merge(
+    const Roads2DGeneratorConnectedComponent &component
+) {
+    const std::vector<Roads2DGeneratorPoint> &vPoints = component.getPoints();
+    for (int i = 0; i < vPoints.size(); i++) {
+        this->addPoint(vPoints[i]);
+    }
+}
+
+// ---------------------------------------------------------------------
 // Roads2DGenerator
 
 Roads2DGenerator::Roads2DGenerator(int nWidthPixels, int nHeightPixels) {
@@ -196,6 +243,8 @@ void Roads2DGenerator::generate(float nDensity) {
     removeSinglePoints();
     removeRames();
 
+    std::vector<Roads2DGeneratorConnectedComponent> comps = findConnectedComponents();
+    std::cout << "comps.size() = " << comps.size() << std::endl;
     // printMap();
 
     std::cout << "------- done -------" << std::endl;
@@ -670,8 +719,6 @@ Roads2DGeneratorPoint Roads2DGenerator::findShortPointFrom(Roads2DGeneratorPoint
     return Roads2DGeneratorPoint(found_x1, found_y1);
 }
 
-
-
 void Roads2DGenerator::tryConnectDeadlocksLoop() {
     std::vector<Roads2DGeneratorPoint> vDeadlocks = findDeadlockPoints();
     Roads2DGeneratorSafeLoop safeLoop(100);
@@ -780,3 +827,77 @@ std::string Roads2DGenerator::getRoadPart(int x, int y) {
     return "unknown";
 }
 
+std::vector<Roads2DGeneratorConnectedComponent> Roads2DGenerator::findConnectedComponents() {
+    std::vector<Roads2DGeneratorConnectedComponent> vComponents;
+    for (int x = 0; x < m_nWidthPixels-1; x++) {
+        for (int y = 0; y < m_nHeightPixels-1; y++) {
+            Roads2DGeneratorPoint p0(x,y);
+            Roads2DGeneratorPoint p1(x+1,y);
+            Roads2DGeneratorPoint p2(x,y+1);
+            bool bAdded = false;
+            bool bAdded2 = false;
+            if (m_vPixelMap[p0.getX()][p0.getY()] && m_vPixelMap[p1.getX()][p1.getY()]) {
+                for (int i = 0; i < vComponents.size(); i++) {
+                    if (vComponents[i].hasPoint(p0) || vComponents[i].hasPoint(p1)) {
+                        vComponents[i].addPoint(p0);
+                        vComponents[i].addPoint(p1);
+                        bAdded = true;
+                    }
+                }
+            }
+            if (!bAdded) {
+                Roads2DGeneratorConnectedComponent component;
+                component.addPoint(p0);
+                component.addPoint(p1);
+                vComponents.push_back(component);
+            }
+            if (m_vPixelMap[p0.getX()][p0.getY()] && m_vPixelMap[p2.getX()][p2.getY()]) {
+                for (int i = 0; i < vComponents.size(); i++) {
+                    if (vComponents[i].hasPoint(p0) || vComponents[i].hasPoint(p2)) {
+                        vComponents[i].addPoint(p0);
+                        vComponents[i].addPoint(p2);
+                        bAdded2 = true;
+                    }
+                }
+            }
+
+            vComponents = mergeComponents(vComponents);
+        }
+    }
+    int nCurrent = vComponents.size();
+    bool bRepeat = true;
+    while (bRepeat) {
+        std::cout << "1" << std::endl;
+        bRepeat = false;
+        vComponents = mergeComponents(vComponents);
+        if (nCurrent != vComponents.size()) {
+            bRepeat = true;
+        }
+        nCurrent = vComponents.size();
+    }
+    return vComponents;
+}
+
+
+std::vector<Roads2DGeneratorConnectedComponent> Roads2DGenerator::mergeComponents(
+    std::vector<Roads2DGeneratorConnectedComponent> vComponents
+) {
+    // merge
+    std::vector<Roads2DGeneratorConnectedComponent> vRet;
+    for (int i0 = 0; i0 < vComponents.size(); i0++) {
+        bool bMerged = false;
+        for (int i1 = 0; i1 < vComponents.size(); i1++) {
+            if (i0 == i1) {
+                continue;
+            }
+            if (vComponents[i1].hasIntersection(vComponents[i0])) {
+                vComponents[i1].merge(vComponents[i0]);
+                bMerged = true;
+            }
+        }
+        if (!bMerged) {
+            vRet.push_back(vComponents[i0]);
+        }
+    }
+    return vRet;
+}
