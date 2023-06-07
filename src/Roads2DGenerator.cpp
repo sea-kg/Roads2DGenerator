@@ -147,58 +147,60 @@ void Roads2DGenerator::generate(float nDensity) {
     }
     int pixels = m_nWidthPixels*m_nHeightPixels;
     m_nMaxMainPoints = nDensity * (pixels / 2);
-    random.setInitSeed(std::time(0));
-    // random.setInitSeed(1684782685);
+    m_random.setInitSeed(std::time(0));
+    // m_random.setInitSeed(1686154273);
 
 
     // std::cout << "m_nWidthPixels = " << m_nWidthPixels << "; m_nHeightPixels = " << m_nHeightPixels << std::endl;
 
     resetMap();
-    random_main_points();
+    randomInitPoints();
     // printMap();
 
-    move_diagonal_tails_loop();
+    moveDiagonalTailsLoop();
     // printMap();
 
     bool bAgain = true;
     while (bAgain) {
-        std::vector<Roads2DGeneratorPoint> vPoints = find_single_points();
+        std::vector<Roads2DGeneratorPoint> vPoints = findSinglePoints();
         if (vPoints.size() <= 1) {
             bAgain = false;
             break;
         }
-        Roads2DGeneratorPoint p0 = vPoints[random.getNextRandom() % vPoints.size()];
-        Roads2DGeneratorPoint p1 = vPoints[random.getNextRandom() % vPoints.size()];
-        connect_points(p0, p1);
-        move_diagonal_tails_loop();
+        Roads2DGeneratorPoint p0 = vPoints[m_random.getNextRandom() % vPoints.size()];
+        Roads2DGeneratorPoint p1 = vPoints[m_random.getNextRandom() % vPoints.size()];
+        connectPoints(p0, p1);
+        moveDiagonalTailsLoop();
     }
 
     // remove last single point
-    remove_single_points();
-    remove_rames();
-    connect_all_close_points();
+    removeSinglePoints();
+    removeRames();
+    connectAllClosePoints();
 
     // printMap();
-    // remove_all_short_cicles
-    remove_all_short_cicles_loop();
-    remove_rames();
-    move_diagonal_tails_loop();
+    // removeAllShortCicles
+    removeAllShortCiclesLoop();
+    removeRames();
+    moveDiagonalTailsLoop();
 
     // printMap();
 
     tryConnectDeadlocksLoop();
-    // commented: move_diagonal_tails_loop()
+    // commented: moveDiagonalTailsLoop()
 
-    remove_all_short_cicles_loop();
-    remove_rames();
-    move_diagonal_tails_loop();
-    remove_deadlocks_loop();
-    remove_single_points();
-    remove_rames();
+    removeAllShortCiclesLoop();
+    removeRames();
+    moveDiagonalTailsLoop();
+    removeDeadlocksLoop();
+    removeSinglePoints();
+    removeRames();
 
     // printMap();
 
-    // std::cout << "------- done -------" << std::endl;
+    std::cout << "------- done -------" << std::endl;
+    std::cout << "init m_random: " << m_random.getInitSeed() << std::endl;
+
     // write_map_to_image()
     // printMap();
 }
@@ -211,8 +213,9 @@ void Roads2DGenerator::printMap() {
             #ifdef _WIN32
                 if (m_vPixelMap[x][y]) {
                     sLine += char(219);
+                    sLine += char(219);
                 } else {
-                    sLine += ' ';
+                    sLine += "  ";
                 }
             #else
                 std::string sFormat = "";
@@ -234,7 +237,7 @@ std::vector<std::vector<std::string>> Roads2DGenerator::exportToTable() {
         std::vector<std::string> vLine;
         for (int x = 0; x < m_nWidthPixels; x++) {
             if (m_vPixelMap[x][y]) {
-                vLine.push_back(get_road_part(x,y));
+                vLine.push_back(getRoadPart(x,y));
             } else {
                 vLine.push_back("");
             }
@@ -278,7 +281,7 @@ void Roads2DGenerator::resetMap() {
     }
 }
 
-bool Roads2DGenerator::is_border(int x, int y) {
+bool Roads2DGenerator::isBorder(int x, int y) {
     if (x == 0 || x == m_nWidthPixels - 1) {
         return true;
     }
@@ -288,209 +291,9 @@ bool Roads2DGenerator::is_border(int x, int y) {
     return false;
 }
 
-bool Roads2DGenerator::is_allowed(int x, int y) {
-    if (is_border(x, y)) {
-        return false;
-    }
-    x = x - 1;
-    y = y - 1;
-    for (int x0 = 0; x0 < 2; x0++) {
-        for (int y0 = 0; y0 < 2; y0++) {
-            bool b1 = m_vPixelMap[x + x0    ][y + y0    ];
-            bool b2 = m_vPixelMap[x + x0 + 1][y + y0    ];
-            bool b3 = m_vPixelMap[x + x0 + 1][y + y0 + 1];
-            bool b4 = m_vPixelMap[x + x0    ][y + y0 + 1];
-            if (b1 && b2 && b3 && b4) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
 
-bool Roads2DGenerator::try_change_to_true(int x, int y) {
-    m_vPixelMap[x][y] = true;
-    // write_map_to_image()
-    if (!is_allowed(x,y)) {
-        m_vPixelMap[x][y] = false;
-        // write_map_to_image()
-        return false;
-    }
-    return true;
-}
-
-void Roads2DGenerator::random_main_points() {
-    int immp = 0;
-    Roads2DGeneratorSafeLoop safeLoop(1000);
-    while (immp < m_nMaxMainPoints) {
-        safeLoop.doIncrement();
-        int x = (random.getNextRandom() % (m_nWidthPixels - 2)) + 1;
-        int y = (random.getNextRandom() % (m_nHeightPixels - 2)) + 1;
-        if (try_change_to_true(x,y)) {
-            immp += 1;
-        }
-        if (safeLoop.isOverMax()) {
-            printMap();
-            std::cout << "Roads2DGenerator::move_diagonal_tails_loop(), nSafeWhile = " << safeLoop.getLoopNumber() << std::endl;
-            exit(1);
-        }
-    }
-}
-
-int Roads2DGenerator::move_diagonal_tails() {
-    int x = 0;
-    int ret = 0;
-    for (int x = 0; x < m_vPixelMap.size(); x++) {
-        std::vector<bool> line = m_vPixelMap[x];
-        for (int y = 0; y < line.size(); y++) {
-            ret += check_and_random_move(x, y);
-        }
-    }
-    return ret;
-}
-
-void Roads2DGenerator::move_diagonal_tails_loop() {
-    int mdt = move_diagonal_tails();
-    Roads2DGeneratorSafeLoop safeLoop(1000);
-    while (mdt > 0) {
-        safeLoop.doIncrement();
-        mdt = move_diagonal_tails();
-        if (safeLoop.isOverMax()) {
-            printMap();
-            std::cout << "Roads2DGenerator::move_diagonal_tails_loop(), nSafeWhile = " << safeLoop.getLoopNumber() << std::endl;
-            exit(1);
-        }
-    }
-}
-
-bool Roads2DGenerator::check_and_random_move(int x, int y) {
-    if (is_border(x, y)) {
-        return 0;
-    }
-    int ret = 0;
-    if (m_vPixelMap[x][y] && m_vPixelMap[x+1][y+1] && !m_vPixelMap[x][y+1] && !m_vPixelMap[x+1][y]) {
-        ret += 1;
-        m_vPixelMap[x+1][y+1] = false;
-        if (random.getNextRandom() % 2 == 0) {
-            try_change_to_true(x,y+1);
-        } else {
-            try_change_to_true(x+1,y);
-        }
-    }
-    if (!m_vPixelMap[x][y] && !m_vPixelMap[x+1][y+1] && m_vPixelMap[x][y+1] && m_vPixelMap[x+1][y]) {
-        ret += 1;
-        m_vPixelMap[x][y+1] = false;
-        if (random.getNextRandom() % 2 == 0) {
-            try_change_to_true(x,y);
-        } else {
-            try_change_to_true(x+1,y+1);
-        }
-    }
-    return ret;
-}
-
-int Roads2DGenerator::get_around_count(int x, int y) {
-    if (is_border(x, y)) {
-        return 4;
-    }
-    int ret = 0;
-    for (int dx = 0; dx < 3; dx++) {
-        for (int dy = 0; dy < 3; dy++) {
-            int x0 = x + dx - 1;
-            int y0 = y + dy - 1;
-            if (x0 == x && y0 == y) {
-                continue;
-            }
-            if (m_vPixelMap[x0][y0]) {
-                ret += 1;
-            }
-        }
-    }
-    return ret;
-}
-
-bool Roads2DGenerator::is_single_point(int x, int y) {
-    if (is_border(x, y)) {
-        return false;
-    }
-    if (!m_vPixelMap[x][y]) {
-        return false;
-    }
-    if (get_around_count(x,y) == 0) {
-        return true;
-    }
-    return false;
-}
-
-std::vector<Roads2DGeneratorPoint> Roads2DGenerator::find_single_points() {
-    std::vector<Roads2DGeneratorPoint> vSinglePoints;
-    for (int x = 0; x < m_vPixelMap.size(); x++) {
-        std::vector<bool> line = m_vPixelMap[x];
-        for (int y = 0; y < line.size(); y++) {
-            if (is_single_point(x, y)) {
-                vSinglePoints.push_back(Roads2DGeneratorPoint(x, y));
-            }
-        }
-    }
-    return vSinglePoints;
-}
-
-int Roads2DGenerator::drawline_by_y(int x0, int x1, int y) {
-    int ret = 0;
-    int ix = std::min(x0,x1);
-    int mx = std::max(x0,x1);
-    for (int i = ix; i <= mx; i++) {
-        if (!m_vPixelMap[i][y]) {
-            if (try_change_to_true(i,y)) {
-                ret += 1;
-            }
-        }
-    }
-    return ret;
-}
-
-int Roads2DGenerator::drawline_by_x(int y0, int y1, int x) {
-    int ret = 0;
-    int iy = std::min(y0,y1);
-    int my = std::max(y0,y1);
-    for (int i = iy; i <= my; i++) {
-        if (!m_vPixelMap[x][i]) {
-            if (try_change_to_true(x,i)) {
-                ret += 1;
-            }
-        }
-    }
-    return ret;
-}
-
-int Roads2DGenerator::connect_points(Roads2DGeneratorPoint p0, Roads2DGeneratorPoint p1) {
-    int ret = 0;
-    int x0 = p0.getX();
-    int y0 = p0.getY();
-    int x1 = p1.getX();
-    int y1 = p1.getY();
-    if (random.getNextRandom() % 2 == 0) {
-        ret += drawline_by_y(x0, x1, y0);
-        ret += drawline_by_x(y0, y1, x1);
-    } else {
-        ret += drawline_by_x(y0, y1, x0);
-        ret += drawline_by_y(x0, x1, y1);
-    }
-    return ret;
-}
-
-void Roads2DGenerator::remove_single_points() {
-    std::vector<Roads2DGeneratorPoint> vPoints = find_single_points();
-    for (int i = 0; i < vPoints.size(); i++) {
-        int x = vPoints[i].getX();
-        int y = vPoints[i].getY();
-        m_vPixelMap[x][y] = false;
-        // write_map_to_image()
-    }
-}
-
-bool Roads2DGenerator::is_rame(int x, int y) {
-    if (is_border(x, y)) {
+bool Roads2DGenerator::isRame(int x, int y) {
+    if (isBorder(x, y)) {
         return false;
     }
     if (!m_vPixelMap[x][y]) {
@@ -521,11 +324,226 @@ bool Roads2DGenerator::is_rame(int x, int y) {
     return false;
 }
 
-void Roads2DGenerator::remove_rames() {
+bool Roads2DGenerator::isEqual(std::vector<Roads2DGeneratorPoint> vLeft, std::vector<Roads2DGeneratorPoint> vRight) {
+    if (vLeft.size() != vRight.size()) {
+        return false;
+    }
+    for (int i = 0; i < vLeft.size(); i++) {
+        if (vLeft[i].getX() != vRight[i].getX() && vLeft[i].getY() != vRight[i].getY()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Roads2DGenerator::isAllowed(int x, int y) {
+    if (isBorder(x, y)) {
+        return false;
+    }
+    x = x - 1;
+    y = y - 1;
+    for (int x0 = 0; x0 < 2; x0++) {
+        for (int y0 = 0; y0 < 2; y0++) {
+            bool b1 = m_vPixelMap[x + x0    ][y + y0    ];
+            bool b2 = m_vPixelMap[x + x0 + 1][y + y0    ];
+            bool b3 = m_vPixelMap[x + x0 + 1][y + y0 + 1];
+            bool b4 = m_vPixelMap[x + x0    ][y + y0 + 1];
+            if (b1 && b2 && b3 && b4) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool Roads2DGenerator::isSinglePoint(int x, int y) {
+    if (isBorder(x, y)) {
+        return false;
+    }
+    if (!m_vPixelMap[x][y]) {
+        return false;
+    }
+    if (getAroundCount(x,y) == 0) {
+        return true;
+    }
+    return false;
+}
+
+bool Roads2DGenerator::tryChangeToTrue(int x, int y) {
+    m_vPixelMap[x][y] = true;
+    // write_map_to_image()
+    if (!isAllowed(x,y)) {
+        m_vPixelMap[x][y] = false;
+        // write_map_to_image()
+        return false;
+    }
+    return true;
+}
+
+void Roads2DGenerator::randomInitPoints() {
+    int immp = 0;
+    Roads2DGeneratorSafeLoop safeLoop(1000);
+    while (immp < m_nMaxMainPoints) {
+        safeLoop.doIncrement();
+        int x = (m_random.getNextRandom() % (m_nWidthPixels - 2)) + 1;
+        int y = (m_random.getNextRandom() % (m_nHeightPixels - 2)) + 1;
+        if (tryChangeToTrue(x,y)) {
+            immp += 1;
+        }
+        if (safeLoop.isOverMax()) {
+            printMap();
+            std::cout << "Roads2DGenerator::moveDiagonalTailsLoop(), nSafeWhile = " << safeLoop.getLoopNumber() << std::endl;
+            exit(1);
+        }
+    }
+}
+
+int Roads2DGenerator::moveDiagonalTails() {
+    int x = 0;
+    int ret = 0;
     for (int x = 0; x < m_vPixelMap.size(); x++) {
         std::vector<bool> line = m_vPixelMap[x];
         for (int y = 0; y < line.size(); y++) {
-            if (is_rame(x, y)) {
+            ret += checkAndRandomMove(x, y);
+        }
+    }
+    return ret;
+}
+
+void Roads2DGenerator::moveDiagonalTailsLoop() {
+    int mdt = moveDiagonalTails();
+    Roads2DGeneratorSafeLoop safeLoop(1000);
+    while (mdt > 0) {
+        safeLoop.doIncrement();
+        mdt = moveDiagonalTails();
+        if (safeLoop.isOverMax()) {
+            printMap();
+            std::cout << "Roads2DGenerator::moveDiagonalTailsLoop(), nSafeWhile = " << safeLoop.getLoopNumber() << std::endl;
+            exit(1);
+        }
+    }
+}
+
+bool Roads2DGenerator::checkAndRandomMove(int x, int y) {
+    if (isBorder(x, y)) {
+        return 0;
+    }
+    int ret = 0;
+    if (m_vPixelMap[x][y] && m_vPixelMap[x+1][y+1] && !m_vPixelMap[x][y+1] && !m_vPixelMap[x+1][y]) {
+        ret += 1;
+        m_vPixelMap[x+1][y+1] = false;
+        if (m_random.getNextRandom() % 2 == 0) {
+            tryChangeToTrue(x,y+1);
+        } else {
+            tryChangeToTrue(x+1,y);
+        }
+    }
+    if (!m_vPixelMap[x][y] && !m_vPixelMap[x+1][y+1] && m_vPixelMap[x][y+1] && m_vPixelMap[x+1][y]) {
+        ret += 1;
+        m_vPixelMap[x][y+1] = false;
+        if (m_random.getNextRandom() % 2 == 0) {
+            tryChangeToTrue(x,y);
+        } else {
+            tryChangeToTrue(x+1,y+1);
+        }
+    }
+    return ret;
+}
+
+int Roads2DGenerator::getAroundCount(int x, int y) {
+    if (isBorder(x, y)) {
+        return 4;
+    }
+    int ret = 0;
+    for (int dx = 0; dx < 3; dx++) {
+        for (int dy = 0; dy < 3; dy++) {
+            int x0 = x + dx - 1;
+            int y0 = y + dy - 1;
+            if (x0 == x && y0 == y) {
+                continue;
+            }
+            if (m_vPixelMap[x0][y0]) {
+                ret += 1;
+            }
+        }
+    }
+    return ret;
+}
+
+
+
+std::vector<Roads2DGeneratorPoint> Roads2DGenerator::findSinglePoints() {
+    std::vector<Roads2DGeneratorPoint> vSinglePoints;
+    for (int x = 0; x < m_vPixelMap.size(); x++) {
+        std::vector<bool> line = m_vPixelMap[x];
+        for (int y = 0; y < line.size(); y++) {
+            if (isSinglePoint(x, y)) {
+                vSinglePoints.push_back(Roads2DGeneratorPoint(x, y));
+            }
+        }
+    }
+    return vSinglePoints;
+}
+
+int Roads2DGenerator::drawLineByY(int x0, int x1, int y) {
+    int ret = 0;
+    int ix = std::min(x0,x1);
+    int mx = std::max(x0,x1);
+    for (int i = ix; i <= mx; i++) {
+        if (!m_vPixelMap[i][y]) {
+            if (tryChangeToTrue(i,y)) {
+                ret += 1;
+            }
+        }
+    }
+    return ret;
+}
+
+int Roads2DGenerator::drawLineByX(int y0, int y1, int x) {
+    int ret = 0;
+    int iy = std::min(y0,y1);
+    int my = std::max(y0,y1);
+    for (int i = iy; i <= my; i++) {
+        if (!m_vPixelMap[x][i]) {
+            if (tryChangeToTrue(x,i)) {
+                ret += 1;
+            }
+        }
+    }
+    return ret;
+}
+
+int Roads2DGenerator::connectPoints(Roads2DGeneratorPoint p0, Roads2DGeneratorPoint p1) {
+    int ret = 0;
+    int x0 = p0.getX();
+    int y0 = p0.getY();
+    int x1 = p1.getX();
+    int y1 = p1.getY();
+    if (m_random.getNextRandom() % 2 == 0) {
+        ret += drawLineByY(x0, x1, y0);
+        ret += drawLineByX(y0, y1, x1);
+    } else {
+        ret += drawLineByX(y0, y1, x0);
+        ret += drawLineByY(x0, x1, y1);
+    }
+    return ret;
+}
+
+void Roads2DGenerator::removeSinglePoints() {
+    std::vector<Roads2DGeneratorPoint> vPoints = findSinglePoints();
+    for (int i = 0; i < vPoints.size(); i++) {
+        int x = vPoints[i].getX();
+        int y = vPoints[i].getY();
+        m_vPixelMap[x][y] = false;
+        // write_map_to_image()
+    }
+}
+
+void Roads2DGenerator::removeRames() {
+    for (int x = 0; x < m_vPixelMap.size(); x++) {
+        std::vector<bool> line = m_vPixelMap[x];
+        for (int y = 0; y < line.size(); y++) {
+            if (isRame(x, y)) {
                 m_vPixelMap[x][y] = false;
                 // write_map_to_image()
             }
@@ -533,8 +551,8 @@ void Roads2DGenerator::remove_rames() {
     }
 }
 
-bool Roads2DGenerator::can_connect_close_points(int x, int y) {
-    if (is_border(x, y)) {
+bool Roads2DGenerator::canConnectClosePoints(int x, int y) {
+    if (isBorder(x, y)) {
         return false;
     }
     if (m_vPixelMap[x][y]) {
@@ -549,25 +567,25 @@ bool Roads2DGenerator::can_connect_close_points(int x, int y) {
     return false;
 }
 
-void Roads2DGenerator::connect_all_close_points() {
+void Roads2DGenerator::connectAllClosePoints() {
     for (int x = 0; x < m_vPixelMap.size(); x++) {
         std::vector<bool> line = m_vPixelMap[x];
         for (int y = 0; y < line.size(); y++) {
-            int _around_n = get_around_count(x, y);
-            if (can_connect_close_points(x, y) && _around_n < 6) {
-                try_change_to_true(x,y);
+            int _around_n = getAroundCount(x, y);
+            if (canConnectClosePoints(x, y) && _around_n < 6) {
+                tryChangeToTrue(x,y);
             }
         }
     }
 }
 
-int Roads2DGenerator::remove_all_short_cicles() {
+int Roads2DGenerator::removeAllShortCicles() {
     int ret = 0;
     for (int x = 0; x < m_vPixelMap.size(); x++) {
         std::vector<bool> line = m_vPixelMap[x];
         for (int y = 0; y < line.size(); y++) {
-            if (get_around_count(x, y) == 8 && !m_vPixelMap[x][y]) {
-                int n = random.getNextRandom() % 4;
+            if (getAroundCount(x, y) == 8 && !m_vPixelMap[x][y]) {
+                int n = m_random.getNextRandom() % 4;
                 if (n == 0) {
                     m_vPixelMap[x][y+1] = false;
                 } else if (n == 1) {
@@ -585,21 +603,21 @@ int Roads2DGenerator::remove_all_short_cicles() {
     return ret;
 }
 
-void Roads2DGenerator::remove_all_short_cicles_loop() {
+void Roads2DGenerator::removeAllShortCiclesLoop() {
     Roads2DGeneratorSafeLoop safeLoop(1000);
-    while (remove_all_short_cicles() > 0) {
+    while (removeAllShortCicles() > 0) {
         safeLoop.doIncrement();
         if (safeLoop.isOverMax()) {
             printMap();
-            std::cout << "Roads2DGenerator::remove_all_short_cicles_loop(), nSafeWhile = " << safeLoop.getLoopNumber() << std::endl;
+            std::cout << "Roads2DGenerator::removeAllShortCiclesLoop(), nSafeWhile = " << safeLoop.getLoopNumber() << std::endl;
             exit(1);
         }
         continue;
     }
 }
 
-bool Roads2DGenerator::is_deadlock_point(int x, int y) {
-    if (is_border(x, y)) {
+bool Roads2DGenerator::isDeadlockPoint(int x, int y) {
+    if (isBorder(x, y)) {
         return false;
     }
     if (!m_vPixelMap[x][y]) {
@@ -618,7 +636,7 @@ std::vector<Roads2DGeneratorPoint> Roads2DGenerator::findDeadlockPoints() {
     for (int x = 0; x < m_vPixelMap.size(); x++) {
         std::vector<bool> line = m_vPixelMap[x];
         for (int y = 0; y < line.size(); y++) {
-            if (is_deadlock_point(x, y)) {
+            if (isDeadlockPoint(x, y)) {
                 vDeadlockPoints.push_back(Roads2DGeneratorPoint(x,y));
             }
         }
@@ -626,7 +644,7 @@ std::vector<Roads2DGeneratorPoint> Roads2DGenerator::findDeadlockPoints() {
     return vDeadlockPoints;
 }
 
-Roads2DGeneratorPoint Roads2DGenerator::find_short_point_from(Roads2DGeneratorPoint p0, std::vector<Roads2DGeneratorPoint> points) {
+Roads2DGeneratorPoint Roads2DGenerator::findShortPointFrom(Roads2DGeneratorPoint p0, std::vector<Roads2DGeneratorPoint> points) {
     int x0 = p0.getX();
     int y0 = p0.getY();
     int found_x1 = x0;
@@ -652,28 +670,18 @@ Roads2DGeneratorPoint Roads2DGenerator::find_short_point_from(Roads2DGeneratorPo
     return Roads2DGeneratorPoint(found_x1, found_y1);
 }
 
-bool Roads2DGenerator::isEqual(std::vector<Roads2DGeneratorPoint> vLeft, std::vector<Roads2DGeneratorPoint> vRight) {
-    if (vLeft.size() != vRight.size()) {
-        return false;
-    }
-    for (int i = 0; i < vLeft.size(); i++) {
-        if (vLeft[i].getX() != vRight[i].getX() && vLeft[i].getY() != vRight[i].getY()) {
-            return false;
-        }
-    }
-    return true;
-}
+
 
 void Roads2DGenerator::tryConnectDeadlocksLoop() {
     std::vector<Roads2DGeneratorPoint> vDeadlocks = findDeadlockPoints();
     Roads2DGeneratorSafeLoop safeLoop(100);
     while (vDeadlocks.size() > 0) {
         safeLoop.doIncrement();
-        int pn0 = random.getNextRandom() % vDeadlocks.size();
+        int pn0 = m_random.getNextRandom() % vDeadlocks.size();
         Roads2DGeneratorPoint p0 = vDeadlocks[pn0];
-        Roads2DGeneratorPoint p1 = find_short_point_from(p0, vDeadlocks);
+        Roads2DGeneratorPoint p1 = findShortPointFrom(p0, vDeadlocks);
         // # print(p0, p1)
-        int connected = connect_points(p0, p1);
+        int connected = connectPoints(p0, p1);
         if (connected == 0) {
             int x = p0.getX();
             int y = p0.getY();
@@ -684,11 +692,11 @@ void Roads2DGenerator::tryConnectDeadlocksLoop() {
         // fix infinity looop
         std::vector<Roads2DGeneratorPoint> vTmpDeadlocks = findDeadlockPoints();
         if (isEqual(vTmpDeadlocks, vDeadlocks)) {
-            remove_deadlocks_loop();
+            removeDeadlocksLoop();
         }
 
         // next interation
-        remove_single_points();
+        removeSinglePoints();
         vDeadlocks = findDeadlockPoints();
 
         // if (safeLoop.getLoopNumber() > 90) {
@@ -697,14 +705,14 @@ void Roads2DGenerator::tryConnectDeadlocksLoop() {
         // }
         if (safeLoop.isOverMax()) {
             // fix and break from cicle
-            remove_deadlocks_loop();
+            removeDeadlocksLoop();
             break;
             // std::cout << "max" << std::endl;
             // printMap();
             // std::cout
             //     << "Roads2DGenerator::tryConnectDeadlocksLoop(), "
             //     << "nSafeWhile = " << safeLoop.getLoopNumber()
-            //     << ", getInitSeed random = " << random.getInitSeed()
+            //     << ", getInitSeed m_random = " << m_random.getInitSeed()
             //     << ", vDeadlocks.size() = " << vDeadlocks.size()
             //     << std::endl;
             // exit(1);
@@ -712,7 +720,7 @@ void Roads2DGenerator::tryConnectDeadlocksLoop() {
     }
 }
 
-void Roads2DGenerator::remove_deadlocks_loop() {
+void Roads2DGenerator::removeDeadlocksLoop() {
     std::vector<Roads2DGeneratorPoint> vDeadlocks = findDeadlockPoints();
     while (vDeadlocks.size() > 0) {
         int x = vDeadlocks[0].getX();
@@ -723,7 +731,7 @@ void Roads2DGenerator::remove_deadlocks_loop() {
     }
 }
 
-std::string Roads2DGenerator::get_road_part(int x, int y) {
+std::string Roads2DGenerator::getRoadPart(int x, int y) {
     if (x < 0 || x >= m_nWidthPixels || y < 0 || y >= m_nHeightPixels) {
         return "error";
     }

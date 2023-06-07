@@ -86,40 +86,41 @@ class Roads2DGenerator {
 
     private:
         void resetMap();
-        bool is_border(int x, int y);
-        bool is_allowed(int x, int y);
-        bool try_change_to_true(int x, int y);
-        void random_main_points();
-        int move_diagonal_tails();
-        void move_diagonal_tails_loop();
-        bool check_and_random_move(int x, int y);
-        int get_around_count(int x, int y);
-        bool is_single_point(int x, int y);
-        std::vector<Roads2DGeneratorPoint> find_single_points();
-        int drawline_by_y(int x0, int x1, int y);
-        int drawline_by_x(int y0, int y1, int x);
-        int connect_points(Roads2DGeneratorPoint p0, Roads2DGeneratorPoint p1);
-        void remove_single_points();
-        bool is_rame(int x, int y);
-        void remove_rames();
-        bool can_connect_close_points(int x, int y);
-        void connect_all_close_points();
-        int remove_all_short_cicles();
-        void remove_all_short_cicles_loop();
-        bool is_deadlock_point(int x, int y);
-        std::vector<Roads2DGeneratorPoint> findDeadlockPoints();
-        Roads2DGeneratorPoint find_short_point_from(Roads2DGeneratorPoint p0, std::vector<Roads2DGeneratorPoint> points);
+        bool isBorder(int x, int y);
+        bool isAllowed(int x, int y);
+        bool isRame(int x, int y);
+        bool isSinglePoint(int x, int y);
         bool isEqual(std::vector<Roads2DGeneratorPoint> vLeft, std::vector<Roads2DGeneratorPoint> vRight);
+        bool tryChangeToTrue(int x, int y);
+        void randomInitPoints();
+        int moveDiagonalTails();
+        void moveDiagonalTailsLoop();
+        bool checkAndRandomMove(int x, int y);
+        int getAroundCount(int x, int y);
+        std::vector<Roads2DGeneratorPoint> findSinglePoints();
+        int drawLineByY(int x0, int x1, int y);
+        int drawLineByX(int y0, int y1, int x);
+        int connectPoints(Roads2DGeneratorPoint p0, Roads2DGeneratorPoint p1);
+        void removeSinglePoints();
+        void removeRames();
+        bool canConnectClosePoints(int x, int y);
+        void connectAllClosePoints();
+        int removeAllShortCicles();
+        void removeAllShortCiclesLoop();
+        bool isDeadlockPoint(int x, int y);
+        std::vector<Roads2DGeneratorPoint> findDeadlockPoints();
+        Roads2DGeneratorPoint findShortPointFrom(Roads2DGeneratorPoint p0, std::vector<Roads2DGeneratorPoint> points);
+        
         void tryConnectDeadlocksLoop();
-        void remove_deadlocks_loop();
-        std::string get_road_part(int x, int y);
+        void removeDeadlocksLoop();
+        std::string getRoadPart(int x, int y);
 
         int m_nWidthPixels;
         int m_nHeightPixels;
         int m_nMaxMainPoints;
         std::vector<std::vector<bool>> m_vPixelMap;
 
-        Roads2DGeneratorPseudoRandom random;
+        Roads2DGeneratorPseudoRandom m_random;
 };
 
 
