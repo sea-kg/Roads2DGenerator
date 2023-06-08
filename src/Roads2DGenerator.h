@@ -88,6 +88,18 @@ class Roads2DGeneratorConnectedComponent {
         std::vector<Roads2DGeneratorPoint> m_vPoints;
 };
 
+class Roads2DGeneratorConnectedComponents {
+    public:
+        Roads2DGeneratorConnectedComponents();
+        void addConnectedPoints(Roads2DGeneratorPoint point1, Roads2DGeneratorPoint point2);
+        std::vector<Roads2DGeneratorConnectedComponent> getComponents();
+
+    private:
+        void mergeComponents();
+
+        std::vector<Roads2DGeneratorConnectedComponent> m_vComponents;
+};
+
 class Roads2DGenerator {
     public:
         Roads2DGenerator(int nWidthPixels, int nHeightPixels);
