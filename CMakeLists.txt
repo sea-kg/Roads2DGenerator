@@ -34,3 +34,7 @@ set_target_properties(Roads2DGenerator
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}
 	RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_SOURCE_DIR}
 )
+
+# enable testing functionality
+enable_testing()
+add_subdirectory(tests)

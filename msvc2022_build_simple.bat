@@ -34,4 +34,11 @@ if %ERRORLEVEL% GEQ 1 (
 )
 echo Done.
 
+cd tmp\windows
+ctest -C Release --output-on-failure
+if %ERRORLEVEL% GEQ 1 (
+    echo Failed tests.
+    EXIT /B 1
+)
+
 endlocal
