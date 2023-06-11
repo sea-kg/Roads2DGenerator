@@ -272,7 +272,7 @@ void Roads2DGenerator::generate(float nDensity) {
     int pixels = m_nWidthPixels*m_nHeightPixels;
     m_nMaxMainPoints = nDensity * (pixels / 2);
     m_random.setInitSeed(std::time(0));
-    m_random.setInitSeed(1686154273);
+    // m_random.setInitSeed(1686154273);
 
 
     // std::cout << "m_nWidthPixels = " << m_nWidthPixels << "; m_nHeightPixels = " << m_nHeightPixels << std::endl;
@@ -320,12 +320,15 @@ void Roads2DGenerator::generate(float nDensity) {
     removeSinglePoints();
     removeRames();
 
-    std::vector<Roads2DGeneratorConnectedComponent> comps = findConnectedComponents();
-    std::cout << "comps.size() = " << comps.size() << std::endl;
+    connectUnunionRoads();
+    removeDeadlocksLoop();
+    removeSinglePoints();
+    removeRames();
+
     // printMap();
 
-    std::cout << "------- done -------" << std::endl;
-    std::cout << "init m_random: " << m_random.getInitSeed() << std::endl;
+    // std::cout << "------- done -------" << std::endl;
+    // std::cout << "init m_random: " << m_random.getInitSeed() << std::endl;
 
     // write_map_to_image()
     // printMap();
@@ -855,6 +858,26 @@ void Roads2DGenerator::removeDeadlocksLoop() {
     }
 }
 
+void Roads2DGenerator::connectUnunionRoads() {
+    std::vector<Roads2DGeneratorConnectedComponent> comps = findConnectedComponents();
+    Roads2DGeneratorSafeLoop safeLoop(100);
+    while (comps.size() > 1) {
+        Roads2DGeneratorPoint p0 = comps[0].getPoints()[m_random.getNextRandom() % comps[0].getPoints().size()];
+        Roads2DGeneratorPoint p1 = comps[1].getPoints()[m_random.getNextRandom() % comps[1].getPoints().size()];
+        connectPoints(p0, p1);
+        moveDiagonalTailsLoop();
+        comps = findConnectedComponents();
+
+        safeLoop.doIncrement();
+        if (safeLoop.isOverMax()) {
+            printMap();
+            std::cout << "Roads2DGenerator::connectUnunionRoads(), nSafeWhile = " << safeLoop.getLoopNumber() << std::endl;
+            exit(1);
+        }
+    }
+    // std::cout << "comps.size() = " << comps.size() << std::endl;
+}
+
 std::string Roads2DGenerator::getRoadPart(int x, int y) {
     if (x < 0 || x >= m_nWidthPixels || y < 0 || y >= m_nHeightPixels) {
         return "error";
@@ -916,33 +939,17 @@ std::vector<Roads2DGeneratorConnectedComponent> Roads2DGenerator::findConnectedC
                 nPoints++;
             }
             if (m_vPixelMap[p0.getX()][p0.getY()] && m_vPixelMap[p1.getX()][p1.getY()]) {
-                // std::cout
-                //     << "components.addConnectedPoints(Roads2DGeneratorPoint("
-                //     << p0.getX() << ","
-                //     << p0.getY() << "), Roads2DGeneratorPoint("
-                //     << p1.getX() << ","
-                //     << p1.getY() << "));"
-                //     << std::endl
-                // ;
                 components.addConnectedPoints(p0, p1);
             }
             if (m_vPixelMap[p0.getX()][p0.getY()] && m_vPixelMap[p2.getX()][p2.getY()]) {
-                // std::cout
-                //     << "components.addConnectedPoints(Roads2DGeneratorPoint("
-                //     << p0.getX() << ","
-                //     << p0.getY() << "), Roads2DGeneratorPoint("
-                //     << p2.getX() << ","
-                //     << p2.getY() << "));"
-                //     << std::endl
-                // ;
                 components.addConnectedPoints(p0, p2);
             }
         }
     }
-    std::cout << "nPoints = " << nPoints << std::endl;
+    // std::cout << "nPoints = " << nPoints << std::endl;
     std::vector<Roads2DGeneratorConnectedComponent> vComponents = components.getComponents();
-    for (int i = 0; i < vComponents.size(); i++) {
-        std::cout << "vComponents[i].size() = " << vComponents[i].getPoints().size() << std::endl;
-    }
+    // for (int i = 0; i < vComponents.size(); i++) {
+    //     std::cout << "vComponents[i].size() = " << vComponents[i].getPoints().size() << std::endl;
+    // }
     return vComponents;
 }

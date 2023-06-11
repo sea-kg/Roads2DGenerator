@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     int width = 41;
     int height = 41;
     Roads2DGenerator road2gen(width, height);
-    road2gen.generate(0.5);
+    road2gen.generate(0.7);
     road2gen.printMap();
 
     // std::cout << "1" << std::endl;

@@ -137,9 +137,9 @@ class Roads2DGenerator {
         Roads2DGeneratorPoint findShortPointFrom(Roads2DGeneratorPoint p0, std::vector<Roads2DGeneratorPoint> points);
         void tryConnectDeadlocksLoop();
         void removeDeadlocksLoop();
+        void connectUnunionRoads();
         std::string getRoadPart(int x, int y);
         std::vector<Roads2DGeneratorConnectedComponent> findConnectedComponents();
-        std::vector<Roads2DGeneratorConnectedComponent> mergeComponents(std::vector<Roads2DGeneratorConnectedComponent> vComponents);
 
         int m_nWidthPixels;
         int m_nHeightPixels;
