@@ -8,10 +8,12 @@ forked and improved from https://github.com/sea-kg/roadmapgen2d
 
 Example of generated structs (30x30 points):
 
-![example1.png](https://raw.githubusercontent.com/sea-kg/bna/master/contrib/images/example1.jpg)
-![example2.png](https://raw.githubusercontent.com/sea-kg/bna/master/contrib/images/example2.jpg)
-![example3.png](https://raw.githubusercontent.com/sea-kg/bna/master/contrib/images/example3.jpg)
-![example4.png](https://raw.githubusercontent.com/sea-kg/bna/master/contrib/images/example4.jpg)
+
+
+![example1.png](https://github.com/sea-kg/Roads2DGenerator/blob/main/images/example1.png?raw=true)
+![example2.png](https://github.com/sea-kg/Roads2DGenerator/blob/main/images/example2.png?raw=true)
+![example3.png](https://github.com/sea-kg/Roads2DGenerator/blob/main/images/example3.png?raw=true)
+![example4.png](https://github.com/sea-kg/Roads2DGenerator/blob/main/images/example4.png?raw=true)
 
 
 ## Usage
