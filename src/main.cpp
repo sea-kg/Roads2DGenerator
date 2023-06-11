@@ -14,8 +14,8 @@ int wmain(int argc, wchar_t *argv[])
 int main(int argc, char *argv[])
 #endif
 {
-    int width = 41;
-    int height = 41;
+    int width = 30;
+    int height = 30;
     Roads2DGenerator road2gen(width, height);
     road2gen.generate(0.7);
     road2gen.printMap();
