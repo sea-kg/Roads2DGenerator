@@ -1,10 +1,10 @@
 # Roads2DGenerator
 
-algorithm for generation map of reads in 2d
+Algorithm for map generation of roads in 2D
 
 (collapse wave function???)
 
-forked and improved from https://github.com/sea-kg/roadmapgen2d
+Forked and improved from https://github.com/sea-kg/roadmapgen2d
 
 Example of generated structs (30x30 points):
 
