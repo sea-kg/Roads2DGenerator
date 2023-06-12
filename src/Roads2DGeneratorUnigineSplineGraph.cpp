@@ -26,6 +26,7 @@ SOFTWARE.
 
 #include <fstream>
 #include <cmath>
+#include <ctime>
 #include <iostream>
 
 #define M_PI           3.14159265358979323846  /* pi */
