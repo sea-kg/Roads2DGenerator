@@ -100,7 +100,7 @@ Roads2DGeneratorGraph::Roads2DGeneratorGraph() {
 
 }
 
-int Roads2DGeneratorGraph::addPoint(Roads2DGeneratorPoint point) {
+int Roads2DGeneratorGraph::findOrAddPointGetIndex(Roads2DGeneratorPoint point) {
     for (int i = 0; i < m_vPoints.size(); i++) {
         if (m_vPoints[i].getX() == point.getX() && m_vPoints[i].getY() == point.getY()) {
             return i;
@@ -384,13 +384,13 @@ Roads2DGeneratorGraph Roads2DGenerator::exportToGraph() {
     for (int x = 0; x < m_nWidthPixels - 1; x++) {
         for (int y = 0; y < m_nHeightPixels - 1; y++) {
             if (m_vPixelMap[x][y]) {
-                int indexXY = graph.addPoint(Roads2DGeneratorPoint(x,y));
+                int indexXY = graph.findOrAddPointGetIndex(Roads2DGeneratorPoint(x,y));
                 if (m_vPixelMap[x+1][y]) {
-                    int indexX1Y = graph.addPoint(Roads2DGeneratorPoint(x+1,y));
+                    int indexX1Y = graph.findOrAddPointGetIndex(Roads2DGeneratorPoint(x+1,y));
                     graph.addConnection(indexXY, indexX1Y);
                 }
                 if (m_vPixelMap[x][y+1]) {
-                    int indexXY1 = graph.addPoint(Roads2DGeneratorPoint(x,y+1));
+                    int indexXY1 = graph.findOrAddPointGetIndex(Roads2DGeneratorPoint(x,y+1));
                     graph.addConnection(indexXY, indexXY1);
                 }
             }

@@ -65,7 +65,7 @@ class Roads2DGeneratorPoint {
 class Roads2DGeneratorGraph {
     public:
         Roads2DGeneratorGraph();
-        int addPoint(Roads2DGeneratorPoint point);
+        int findOrAddPointGetIndex(Roads2DGeneratorPoint point);
         void addConnection(int index1, int index2);
         const std::vector<Roads2DGeneratorPoint> &getPoints() const;
         const std::vector<std::pair<int,int>> &getConnections() const;
