@@ -21,4 +21,7 @@ check_ret $? "configure"
 cmake --build ./tmp/linux --config Release
 check_ret $? "build"
 
-cd ./tmp/linux && ctest --output-on-failure
+cd ./tmp/linux
+
+ctest --output-on-failure
+check_ret $? "tests"
