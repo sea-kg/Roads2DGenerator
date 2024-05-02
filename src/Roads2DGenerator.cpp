@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+// original source-code: https://github.com/sea-kg/Roads2DGenerator
+
 #include "Roads2DGenerator.h"
 #include <iostream>
 #include <cmath>
@@ -361,7 +363,7 @@ void Roads2DGenerator::printMap() {
 }
 
 std::vector<std::vector<std::string>> Roads2DGenerator::exportToTable() {
-    std::vector<std::vector<std::string>> vTextures;
+    std::vector<std::vector<std::string>> vResult;
     for (int y = 0; y < m_nHeightPixels; y++) {
         std::vector<std::string> vLine;
         for (int x = 0; x < m_nWidthPixels; x++) {
@@ -371,8 +373,9 @@ std::vector<std::vector<std::string>> Roads2DGenerator::exportToTable() {
                 vLine.push_back("");
             }
         }
+        vResult.push_back(vLine);
     }
-    return vTextures;
+    return vResult;
 }
 
 std::vector<std::vector<bool>> Roads2DGenerator::exportToPixelMap() {

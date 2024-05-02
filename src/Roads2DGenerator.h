@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+// original source-code: https://github.com/sea-kg/Roads2DGenerator
+
 #ifndef __ROADS_2D_GENERATOR_H__
 #define __ROADS_2D_GENERATOR_H__
 
